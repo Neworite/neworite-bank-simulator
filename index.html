@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nworite Bank Simulator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b0b0c;
+            color: #f1f1f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: #151518;
+            border: 1px solid #2d2d35;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .bank-logo {
+            max-width: 160px;
+            height: auto;
+            display: block;
+            margin: 0 auto 10px;
+            object-fit: contain;
+        }
+
+        .logo-fallback {
+            font-size: 26px;
+            font-weight: bold;
+            color: #9b59b6;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(155, 89, 182, 0.4);
+        }
+
+        h2, h3 {
+            color: #9b59b6;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            background: #0b0b0c;
+            border: 1px solid #2d2d35;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        input[type="number"]:focus {
+            border-color: #9b59b6;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #9b59b6;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:hover {
+            background: #8e44ad;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-dev {
+            background: #e74c3c;
+            margin-bottom: 15px;
+        }
+
+        .btn-dev:hover {
+            background: #c0392b;
+        }
+
+        .btn-logout {
+            background: #34495e;
+            margin-top: 15px;
+        }
+
+        .btn-logout:hover {
+            background: #2c3e50;
+        }
+
+        .card {
+            background: #0b0b0c;
+            border: 1px solid #2d2d35;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card-dev {
+            border-color: #9b59b6;
+            background: #1a1024;
+        }
+
+        .balance-box {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #2ecc71;
+            margin: 10px 0;
+        }
+
+        .code-display {
+            background: #151518;
+            border: 1px dashed #9b59b6;
+            color: #9b59b6;
+            padding: 10px;
+            text-align: center;
+            font-family: monospace;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+
+        .code-display:hover {
+            background: #22152e;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            display: none;
+            text-align: center;
+        }
+
+        .message.error {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            display: block;
+        }
+
+        .message.success {
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            color: #2ecc71;
+            display: block;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .user-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo-container">
+        <img src="image_J-1D5P.png" class="bank-logo" alt="Neworite Logo" onerror="handleLogoError(this)">
+        <div id="logoFallback" class="logo-fallback hidden">NEWORITE BANK</div>
+    </div>
+
+    <div id="msgBox" class="message"></div>
+
+    <!-- ЕКРАН ВХОДУ -->
+    <div id="loginScreen">
+        <h2>Вхід у систему</h2>
+        <form id="loginForm" onsubmit="authAccount(event)">
+            <div class="form-group">
+                <label for="username">Нікнейм (username)</label>
+                <input type="text" id="username" required placeholder="Введіть нікнейм">
+            </div>
+
+            <div class="form-group">
+                <label for="pin">4-значний ПІН-код</label>
+                <input type="password" id="pin" maxlength="4" pattern="\d{4}" inputmode="numeric" required placeholder="****">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Пароль</label>
+                <input type="password" id="password" required placeholder="Введіть ваш пароль">
+            </div>
+
+            <button type="submit">Увійти / Зареєструватися</button>
+        </form>
+    </div>
+
+    <!-- ГОЛОВНИЙ ЕКРАН -->
+    <div id="mainScreen" class="hidden">
+        <div class="header-info">
+            <span class="user-title" id="displayUsername">User</span>
+            <span id="devBadge" class="hidden" style="color: #9b59b6; font-size: 12px; border: 1px solid #9b59b6; padding: 2px 6px; border-radius: 4px;">DEV</span>
+        </div>
+
+        <div class="card">
+            <div style="text-align: center; color: #aaa; font-size: 14px;">Ваш баланс:</div>
+            <div class="balance-box"><span id="displayBalance">0</span> <small style="font-size: 16px;">Nworite Coins</small></div>
+        </div>
+
+        <!-- БЛОК РОЗРОБНИКА: ШВИДКІ КОЇНИ -->
+        <div id="devQuickCoins" class="card card-dev hidden">
+            <h3>Панель Розробника</h3>
+            <button type="button" class="btn-dev" onclick="addDevCoins()">⚡ Додати +100 Coins собі на баланс</button>
+        </div>
+
+        <!-- СТВОРЕННЯ ЧЕКУ -->
+        <div class="card">
+            <h3>Створити чек</h3>
+            <div class="form-group">
+                <label>Сума чеку</label>
+                <input type="number" id="checkAmount" min="1" placeholder="Сума в Nworite Coins">
+            </div>
+            <div class="form-group">
+                <label>Підтвердьте ПІН-код</label>
+                <input type="password" id="checkPin" maxlength="4" placeholder="Ваш 4-значний ПІН">
+            </div>
+            <button type="button" onclick="createCheck()">Згенерувати чек</button>
+            <div id="generatedCodeContainer" class="hidden">
+                <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #888;">Натисніть на код, щоб скопіювати:</div>
+                <div id="generatedCode" class="code-display" onclick="copyCode(this)"></div>
+            </div>
+        </div>
+
+        <!-- АКТИВАЦІЯ -->
+        <div class="card">
+            <h3>Активація коду / чеку</h3>
+            <div class="form-group">
+                <label>Введіть код чеку або промокод</label>
+                <input type="text" id="redeemCodeInput" placeholder="NW-CHECK-... або ПРОМОКОД">
+            </div>
+            <button type="button" onclick="redeemCode()">Активувати</button>
+        </div>
+
+        <!-- ПАНЕЛЬ РОЗРОБНИКА: ПРОМОКОДИ -->
+        <div id="devAdminPanel" class="card card-dev hidden">
+            <h3>Створити Глобальний Промокод</h3>
+            <div class="form-group">
+                <label>Назва коду (наприклад: BONUS2026)</label>
+                <input type="text" id="promoName" placeholder="Введіть код">
+            </div>
+            <div class="form-group">
+                <label>Сума монет</label>
+                <input type="number" id="promoAmount" min="1" placeholder="Кількість монет">
+            </div>
+            <button type="button" style="background: #8e44ad;" onclick="createGlobalPromo()">Створити промокод</button>
+        </div>
+
+        <button type="button" class="btn-logout" onclick="logout()">Вийти з акаунта</button>
+    </div>
+</div>
+
+<script>
+    const DEV_NAME = "Neworite";
+    const DEV_PIN = "1258";
+    const DEV_PASS = "12102023";
+
+    let currentUser = null;
+
+    function handleLogoError(img) {
+        img.style.display = 'none';
+        document.getElementById('logoFallback').classList.remove('hidden');
+    }
+
+    function showMsg(text, isSuccess = false) {
+        const msgBox = document.getElementById('msgBox');
+        msgBox.textContent = text;
+        msgBox.className = 'message ' + (isSuccess ? 'success' : 'error');
+        setTimeout(() => {
+            msgBox.className = 'message';
+            msgBox.textContent = '';
+        }, 4000);
+    }
+
+    function getUsersDB() {
+        return JSON.parse(localStorage.getItem('nw_users')) || {};
+    }
+
+    function saveUsersDB(users) {
+        localStorage.setItem('nw_users', JSON.stringify(users));
+    }
+
+    function getSysCodesDB() {
+        return JSON.parse(localStorage.getItem('nw_sys_codes')) || {};
+    }
+
+    function saveSysCodesDB(codes) {
+        localStorage.setItem('nw_sys_codes', JSON.stringify(codes));
+    }
+
+    function authAccount(e) {
+        e.preventDefault();
+        const usernameInput = document.getElementById('username').value.trim();
+        const pinInput = document.getElementById('pin').value.trim();
+        const passwordInput = document.getElementById('password').value.trim();
+
+        if (!usernameInput || !pinInput || pinInput.length !== 4 || !passwordInput) {
+            showMsg("Заповніть всі поля! ПІН-код має містити 4 цифри.");
+            return;
+        }
+
+        let users = getUsersDB();
+
+        // 1. ПЕРЕВІРКА АКАУНТА РОЗРОБНИКА (ХАРДКОД)
+        if (usernameInput === DEV_NAME) {
+            if (pinInput !== DEV_PIN || passwordInput !== DEV_PASS) {
+                showMsg("Невірний ПІН-код або пароль розробника!");
+                return;
+            }
+
+            // Синхронізуємо/гарантуємо наявність запису Neworite в localStorage
+            if (!users[DEV_NAME]) {
+                users[DEV_NAME] = {
+                    username: DEV_NAME,
+                    pin: DEV_PIN,
+                    password: DEV_PASS,
+                    balance: 1000
+                };
+            } else {
+                // Оновлюємо дані розробника до правильних хардкод-значень
+                users[DEV_NAME].pin = DEV_PIN;
+                users[DEV_NAME].password = DEV_PASS;
+            }
+            saveUsersDB(users);
+
+            currentUser = DEV_NAME;
+            document.getElementById('loginForm').reset();
+            showMsg("Успішний вхід розробника!", true);
+            renderMainScreen();
+            return;
+        }
+
+        // 2. ДЛЯ ЗВИЧАЙНИХ ГРАВЦІВ
+        if (users[usernameInput]) {
+            // Акаунт існує — перевіряємо дані входу
+            if (users[usernameInput].pin !== pinInput || users[usernameInput].password !== passwordInput) {
+                showMsg("Невірний ПІН або пароль!");
+                return;
+            }
+        } else {
+            // Новий акаунт — реєструємо
+            users[usernameInput] = {
+                username: usernameInput,
+                pin: pinInput,
+                password: passwordInput,
+                balance: 100
+            };
+            saveUsersDB(users);
+            showMsg("Акаунт успішно створено!", true);
+        }
+
+        currentUser = usernameInput;
+        document.getElementById('loginForm').reset();
+        renderMainScreen();
+    }
+
+    function renderMainScreen() {
+        const users = getUsersDB();
+        const user = users[currentUser];
+
+        if (!user) return;
+
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('mainScreen').classList.remove('hidden');
+
+        document.getElementById('displayUsername').textContent = user.username;
+        document.getElementById('displayBalance').textContent = user.balance;
+
+        const isDev = (user.username === DEV_NAME);
+        if (isDev) {
+            document.getElementById('devQuickCoins').classList.remove('hidden');
+            document.getElementById('devAdminPanel').classList.remove('hidden');
+            document.getElementById('devBadge').classList.remove('hidden');
+        } else {
+            document.getElementById('devQuickCoins').classList.add('hidden');
+            document.getElementById('devAdminPanel').classList.add('hidden');
+            document.getElementById('devBadge').classList.add('hidden');
+        }
+
+        document.getElementById('generatedCodeContainer').classList.add('hidden');
+    }
+
+    function addDevCoins() {
+        if (currentUser !== DEV_NAME) return;
+
+        let users = getUsersDB();
+        if (users[DEV_NAME]) {
+            users[DEV_NAME].balance += 100;
+            saveUsersDB(users);
+            document.getElementById('displayBalance').textContent = users[DEV_NAME].balance;
+            showMsg("Додано +100 Coins!", true);
+        }
+    }
+
+    function createCheck() {
+        const amount = parseInt(document.getElementById('checkAmount').value);
+        const pin = document.getElementById('checkPin').value.trim();
+
+        if (isNaN(amount) || amount <= 0) {
+            showMsg("Введіть коректну суму!");
+            return;
+        }
+
+        let users = getUsersDB();
+        const user = users[currentUser];
+
+        if (user.pin !== pin) {
+            showMsg("Невірний ПІН-код!");
+            return;
+        }
+
+        if (user.balance < amount) {
+            showMsg("Недостатньо коштів на балансі!");
+            return;
+        }
+
+        user.balance -= amount;
+        saveUsersDB(users);
+
+        const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const checkCode = `NW-CHECK-${amount}-${randomStr}`;
+
+        let sysCodes = getSysCodesDB();
+        sysCodes[checkCode] = {
+            type: 'transfer',
+            amount: amount,
+            used: false,
+            creator: currentUser
+        };
+        saveSysCodesDB(sysCodes);
+
+        document.getElementById('displayBalance').textContent = user.balance;
+        document.getElementById('checkAmount').value = '';
+        document.getElementById('checkPin').value = '';
+
+        const codeBox = document.getElementById('generatedCode');
+        codeBox.textContent = checkCode;
+        document.getElementById('generatedCodeContainer').classList.remove('hidden');
+
+        showMsg("Чек успішно створено!", true);
+    }
+
+    function redeemCode() {
+        const codeInput = document.getElementById('redeemCodeInput').value.trim();
+
+        if (!codeInput) {
+            showMsg("Введіть код для активації!");
+            return;
+        }
+
+        let sysCodes = getSysCodesDB();
+        const codeData = sysCodes[codeInput];
+
+        if (!codeData) {
+            showMsg("Код або чек не знайдено!");
+            return;
+        }
+
+        if (codeData.used) {
+            showMsg("Цей код або чек вже був використаний!");
+            return;
+        }
+
+        let users = getUsersDB();
+        users[currentUser].balance += codeData.amount;
+        saveUsersDB(users);
+
+        codeData.used = true;
+        saveSysCodesDB(sysCodes);
+
+        document.getElementById('displayBalance').textContent = users[currentUser].balance;
+        document.getElementById('redeemCodeInput').value = '';
+
+        showMsg(`Успішно активовано! Отримано ${codeData.amount} Nworite Coins.`, true);
+    }
+
+    function createGlobalPromo() {
+        if (currentUser !== DEV_NAME) return;
+
+        const promoName = document.getElementById('promoName').value.trim().toUpperCase();
+        const amount = parseInt(document.getElementById('promoAmount').value);
+
+        if (!promoName || isNaN(amount) || amount <= 0) {
+            showMsg("Заповніть назву коду та коректну суму!");
+            return;
+        }
+
+        let sysCodes = getSysCodesDB();
+
+        if (sysCodes[promoName]) {
+            showMsg("Такий промокод вже існує!");
+            return;
+        }
+
+        sysCodes[promoName] = {
+            type: 'global_promo',
+            amount: amount,
+            used: false,
+            creator: DEV_NAME
+        };
+        saveSysCodesDB(sysCodes);
+
+        document.getElementById('promoName').value = '';
+        document.getElementById('promoAmount').value = '';
+
+        showMsg(`Глобальний промокод "${promoName}" на ${amount} coins створено!`, true);
+    }
+
+    function copyCode(element) {
+        const text = element.textContent;
+        if (!text) return;
+
+        navigator.clipboard.writeText(text).then(() => {
+            showMsg("Код скопійовано в буфер обміну!", true);
+        }).catch(() => {
+            showMsg("Не вдалося скопіювати код.");
+        });
+    }
+
+    function logout() {
+        currentUser = null;
+        document.getElementById('mainScreen').classList.add('hidden');
+        document.getElementById('loginScreen').classList.remove('hidden');
+        showMsg("Ви вийшли з системи.", true);
+    }
+</script>
+
+</body>
+</html>
